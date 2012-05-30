@@ -1,0 +1,16 @@
+{application, ratelimiter,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, [ratelimiter_sup, ratelimiter_server]},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+
+  {mod, { ratelimiter, []}},
+  {modules, [ratelimiter, ratelimiter_sup, ratelimiter_server]},
+  {env, [
+  {timeout, 1000}
+  ]}
+ ]}.
