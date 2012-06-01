@@ -7,7 +7,7 @@
 -export([start_link/0]).
 
 %% Supervisor callbacks
--export([init/0]).
+-export([init/1]).
 
 %% ===================================================================
 %% API functions
@@ -20,7 +20,7 @@ start_link() ->
 %% Supervisor callbacks
 %% ===================================================================
 
-init() ->
+init(_) ->
     ChildSpec = {ratelimiter,
                  {ratelimiter_server, start_link, []},
                  permanent,

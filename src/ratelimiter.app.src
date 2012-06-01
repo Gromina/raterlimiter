@@ -11,6 +11,6 @@
   {mod, { ratelimiter, []}},
   {modules, [ratelimiter, ratelimiter_sup, ratelimiter_server]},
   {env, [
-  {timeout, 1000}
+  {timeout, 600000} % milliseconds
   ]}
  ]}.

@@ -1,0 +1,1 @@
+-define(RATELIMITER_TABLE, cryptom_ips).
