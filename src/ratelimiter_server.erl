@@ -1,6 +1,8 @@
 -module(ratelimiter_server).
 -behaviour(gen_server).
 
+-include_lib("stdlib/include/ms_transform.hrl").
+
 -include_lib("ratelimiter.hrl").
 -export([start_link/0]).
 
@@ -21,8 +23,8 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [],[]).
 
 init(_) ->
-    io:format("starting ratelimiter"),
     {ok, Timeout} = application:get_env(ratelimiter, timeout),
+    io:format("starting ratelimiter with Timeout ~p ~n",[Timeout]),
     ets:new(?RATELIMITER_TABLE, [named_table, ordered_set, public]),
     timer:send_interval(Timeout, interval),
     {ok, #ratelimiter{timeout=Timeout}}.
@@ -39,7 +41,6 @@ handle_cast(_Msg, State) ->
 
 %% callback called periodically
 handle_info(interval, State)->
-  io:format("deleting old limiters"),
   remove_old_limiters(State#ratelimiter.timeout),
   {noreply, State};
 
