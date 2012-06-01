@@ -2,15 +2,16 @@
  [
   {description, ""},
   {vsn, "1"},
-  {registered, [ratelimiter_sup, ratelimiter_server]},
+  {registered, [ratelimiter_sup, ratelimiter]},
   {applications, [
                   kernel,
                   stdlib
                  ]},
 
-  {mod, { ratelimiter, []}},
-  {modules, [ratelimiter, ratelimiter_sup, ratelimiter_server]},
+  {mod, { ratelimiter_app, []}},
+  {modules, [ratelimiter_app, ratelimiter_sup, ratelimiter]},
   {env, [
-  {timeout, 10000} % milliseconds
+    {timeout, 300000},      % bucket maximum lifetime (5 min)
+    {cleanup_rate, 10000}   % cleanup every X milliseconds (every 10 secs)
   ]}
  ]}.

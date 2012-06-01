@@ -22,9 +22,9 @@ start_link() ->
 
 init(_) ->
     ChildSpec = {ratelimiter,
-                 {ratelimiter_server, start_link, []},
+                 {ratelimiter, start_link, []},
                  permanent,
                  1000,
                  worker,
-                 [ratelimiter_server]},
+                 [ratelimiter]},
     {ok, {{one_for_all,5,3600}, [ChildSpec]}}.

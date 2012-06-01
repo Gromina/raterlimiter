@@ -1,1 +1,1 @@
--define(RATELIMITER_TABLE, cryptom_ips).
+-define(RATELIMITER_TABLE, ratelimiter_buckets).
