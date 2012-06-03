@@ -7,7 +7,7 @@
 % http://en.wikipedia.org/wiki/Token_bucket
 
 %% Internal Exports
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
+-export([start/0, init/1, handle_call/3, handle_cast/2, handle_info/2,
          code_change/3, terminate/2]).
 
 -define(RATERLIMITER_TABLE, raterlimiter_buckets).
@@ -15,6 +15,23 @@
 -record(raterlimiter, {cleanup_rate, timeout}).
 %% todo
 %% -->  raterlimiter
+
+%% @doc Start the application. Mainly useful for using `-s raterlimiter' as a command
+%% line switch to the VM to make raterlimiter start on boot.
+%% Note: this start/0, start_ok code is taken from lager app (https://github.com/basho/lager)
+start() -> start(raterlimiter).
+
+start(App) ->
+    start_ok(App, application:start(App, permanent)).
+
+start_ok(_App, ok) -> ok;
+start_ok(_App, {error, {already_started, _App}}) -> ok;
+start_ok(App, {error, {not_started, Dep}}) ->
+    ok = start(Dep),
+    start(App);
+start_ok(App, {error, Reason}) ->
+    erlang:error({app_start_failed, App, Reason}).
+
 
 
 start_link() ->
