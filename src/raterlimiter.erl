@@ -21,6 +21,7 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [],[]).
 
 init(_) ->
+    io:format("Starting Raterlimiter ~n"),
     {ok, Timeout} = application:get_env(raterlimiter, timeout),
     {ok, Rate} = application:get_env(raterlimiter, cleanup_rate),
     io:format("Starting Raterlimiter with Timeout ~p, Cleanup every ~p milliseconds ~n",[Timeout, Rate]),
