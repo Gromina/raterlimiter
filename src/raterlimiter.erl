@@ -6,8 +6,8 @@
 
 % http://en.wikipedia.org/wiki/Token_bucket
 
-%% Internal Exports
--export([start/0, init/1, handle_call/3, handle_cast/2, handle_info/2,
+-export([start/0, check_rate/3]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          code_change/3, terminate/2]).
 
 -define(RATERLIMITER_TABLE, raterlimiter_buckets).
@@ -32,7 +32,8 @@ start_ok(App, {error, {not_started, Dep}}) ->
 start_ok(App, {error, Reason}) ->
     erlang:error({app_start_failed, App, Reason}).
 
-
+check_rate(Id, Scale, Limit) ->
+  gen_server:call(raterlimiter, {Id, Scale, Limit}).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [],[]).
