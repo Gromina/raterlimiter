@@ -1,1 +1,0 @@
--define(RATELIMITER_TABLE, ratelimiter_buckets).

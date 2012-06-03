@@ -1,5 +1,4 @@
-
--module(ratelimiter_sup).
+-module(raterlimiter_sup).
 
 -behaviour(supervisor).
 
@@ -21,10 +20,10 @@ start_link() ->
 %% ===================================================================
 
 init(_) ->
-    ChildSpec = {ratelimiter,
-                 {ratelimiter, start_link, []},
-                 permanent,
-                 1000,
-                 worker,
-                 [ratelimiter]},
+    ChildSpec = {raterlimiter,                    % id
+                 {raterlimiter, start_link, []},  % start params
+                 permanent,                       % restart strategy
+                 1000,                            % timeout to wait shutdown
+                 worker,                          % type of supervised process
+                 [raterlimiter]},                 % gen_server module
     {ok, {{one_for_all,5,3600}, [ChildSpec]}}.

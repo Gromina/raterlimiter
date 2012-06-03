@@ -1,4 +1,4 @@
--module(ratelimiter_app).
+-module(raterlimiter_app).
 
 -behaviour(application).
 
@@ -11,11 +11,11 @@
 
 %% running from command line
 start() ->
-  application:start(ratelimiter).
+  application:start(raterlimiter).
 
 %% usual start
 start(_StartType, _StartArgs) ->
-    ratelimiter_sup:start_link().
+    raterlimiter_sup:start_link().
 
 stop(_State) ->
     ok.

@@ -1,6 +1,4 @@
-# A sample Guardfile
-# More info at https://github.com/guard/guard#readme
-ignore_paths 'deps', 'rel', 'log', 'cryptom/ebin'
+ignore_paths 'ebin'
 
 notification :growl
 

@@ -1,9 +1,7 @@
--module(ratelimiter).
+-module(raterlimiter).
 -behaviour(gen_server).
 
 -include_lib("stdlib/include/ms_transform.hrl").
-
--include_lib("ratelimiter.hrl").
 -export([start_link/0]).
 
 % http://en.wikipedia.org/wiki/Token_bucket
@@ -12,24 +10,25 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          code_change/3, terminate/2]).
 
--record(ratelimiter, {cleanup_rate, timeout}).
+-define(RATERLIMITER_TABLE, raterlimiter_buckets).
 
-
-% TODO
-% параметры - как часто чистить корзины, какой таймаут корзин для удаления)
-
+-record(raterlimiter, {cleanup_rate, timeout}).
+%% todo
+%% -->  raterlimiter
 
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [],[]).
 
 init(_) ->
-    {ok, Timeout} = application:get_env(ratelimiter, timeout),
-    {ok, Rate} = application:get_env(ratelimiter, cleanup_rate),
-    io:format("starting Ratelimiter with Timeout ~p ~n",[Timeout]),
-    ets:new(?RATELIMITER_TABLE, [named_table, ordered_set, private]),
+    {ok, Timeout} = application:get_env(raterlimiter, timeout),
+    {ok, Rate} = application:get_env(raterlimiter, cleanup_rate),
+    io:format("Starting Raterlimiter with Timeout ~p, Cleanup every ~p milliseconds ~n",[Timeout, Rate]),
+
+    ets:new(?RATERLIMITER_TABLE, [named_table, ordered_set, private]),
+
     timer:send_interval(Rate, interval),
-    {ok, #ratelimiter{timeout=Timeout, cleanup_rate=Rate}}.
+    {ok, #raterlimiter{timeout=Timeout, cleanup_rate=Rate}}.
 
 handle_call({Client, Scale, Limit}, _From, State) ->
     Result = count_hit(Client, Scale, Limit),
@@ -43,7 +42,7 @@ handle_cast(_Msg, State) ->
 
 %% callback called periodically
 handle_info(interval, State)->
-  remove_old_limiters(State#ratelimiter.timeout),
+  remove_old_limiters(State#raterlimiter.timeout),
   {noreply, State};
 
 handle_info(_Msg, State) ->
@@ -61,19 +60,19 @@ terminate(_Reason, _State) ->
 -spec count_hit(Id::binary(), Scale::integer(), Limit::integer()) -> {ok, continue} | {fail, Count::integer()}.
 %% @doc Counts request by ID and blocks it if rate limiter fires
 %% ID of the client
-%% Scale of time (1000 bucket every second, 60000 bucket every minute)
+%% Scale of time (1000 = new bucket every second, 60000 = bucket every minute)
 %% Limit - max size of bucket
 count_hit(Id, Scale, Limit) ->
-  Stamp = timestamp(), %% milliseconds
-  BucketNumber = trunc(Stamp / Scale), % with scale=1 bucket changes every millisecond
+  Stamp = timestamp(),                    %% milliseconds since 00:00 GMT, January 1, 1970
+  BucketNumber = trunc(Stamp / Scale),    %% with scale=1 bucket changes every millisecond
   Key = {BucketNumber, Id},
-  case   ets:member(?RATELIMITER_TABLE, Key) of
+  case   ets:member(?RATERLIMITER_TABLE, Key) of
     false ->
-      ets:insert(?RATELIMITER_TABLE, {Key, 1, Stamp, Stamp }),
+      ets:insert(?RATERLIMITER_TABLE, {Key, 1, Stamp, Stamp }),
       {ok, continue};
     true ->
       % increment counter by 1, created_time by 0, and changed_time by current one
-      Counters = ets:update_counter(?RATELIMITER_TABLE, Key, [{2,1},{3,0},{4,1,0, Stamp}]),
+      Counters = ets:update_counter(?RATERLIMITER_TABLE, Key, [{2,1},{3,0},{4,1,0, Stamp}]),
       % Counter, created at, changed at
       [BucketSize, _, _] = Counters,
       if
@@ -88,8 +87,8 @@ count_hit(Id, Scale, Limit) ->
 %% @doc Removes old counters and returns number of deleted counters.
 remove_old_limiters(Timeout) ->
   NowStamp = timestamp(),
-  Matcher = ets:fun2ms(fun ({_,_,Accessed,_}) when Accessed < (NowStamp - Timeout) -> true end),
-  ets:select_delete(?RATELIMITER_TABLE, Matcher).
+  Matcher = ets:fun2ms(fun ({_,_,_,Accessed}) when Accessed < (NowStamp - Timeout) -> true end),
+  ets:select_delete(?RATERLIMITER_TABLE, Matcher).
 
 -spec timestamp() -> Timstamp::integer().
 %% @doc Returns now() as milliseconds
@@ -99,6 +98,6 @@ timestamp() ->
 -spec timestamp({Mega::integer(), Secs::integer(), Micro::integer()}) -> Timestamp::integer().
 %% @doc returns Erlang Time as milliseconds
 timestamp({Mega, Sec, Micro}) ->
-  Mega*1000000*1000 + Sec*1000 + round(Micro/1000).
+  1000*(Mega*1000000 + Sec) + round(Micro/1000).
 
 
